@@ -48,3 +48,4 @@ SignalInsight is a production-grade, professional desktop engineering instrument
   - Multi-page professional engineering PDF reports via ReportLab.
   - JSON and CSV structured result exports.
   - SigMF metadata export (`.sigmf-meta`).
+# sih2026147
