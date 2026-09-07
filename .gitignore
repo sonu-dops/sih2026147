@@ -1,0 +1,114 @@
+# =====================================================================
+# Python Bytecode & Optimization
+# =====================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# =====================================================================
+# Packaging, Distribution & Builds
+# =====================================================================
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# =====================================================================
+# Virtual Environments
+# =====================================================================
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# =====================================================================
+# Testing, Coverage & Linters
+# =====================================================================
+.pytest_cache/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+
+# =====================================================================
+# SignalInsight Runtime Caches, Projects & Generated Reports
+# =====================================================================
+.signalinsight_cache/
+SignalInsight_Projects/
+SignalInsight_Reports/
+*.pdf
+*.csv
+# Retain any future reference documentation PDFs in docs/
+!docs/**/*.pdf
+
+# =====================================================================
+# Large RF Captures & Binary Recordings
+# (Prevents multi-GB binary IQ dumps from bloating Git history)
+# =====================================================================
+*.iq
+*.raw
+*.bin
+*.dat
+*.cfile
+*.sigmf-data
+
+# Whitelist standard lightweight demo fixtures
+!samples/demo_qpsk.wav
+
+# =====================================================================
+# Logs & Temporary Scratch Files
+# =====================================================================
+*.log
+scratch/
+crash_reports/
+
+# =====================================================================
+# IDEs, Editors & Operating System Metadata
+# =====================================================================
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# Windows thumbnail & system databases
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
