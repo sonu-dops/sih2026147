@@ -41,11 +41,10 @@ SignalInsight is a production-grade, professional desktop engineering instrument
 - **Extensible Decoding Architecture**:
   - Strict non-arbitrary decoding: requires explicit framing/FEC/CRC configuration or reports `"Decoding unavailable — coding configuration not specified."`
 - **Professional Desktop UI**:
-  - PyQt6 + PyQtGraph dark workstation theme.
+  - PyQt6 + PyQtGraph professional light engineering workstation theme.
   - Dockable panels: Workspace Explorer, Properties Inspector, Analysis Control, Results Summary, Markers Manager, Message Console, and Processing Queue.
   - Interactive plot cursors, peak/delta markers, and level-of-detail decimation for large recordings.
 - **Export & Reporting**:
   - Multi-page professional engineering PDF reports via ReportLab.
   - JSON and CSV structured result exports.
   - SigMF metadata export (`.sigmf-meta`).
-# sih2026147
