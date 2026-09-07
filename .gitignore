@@ -69,6 +69,20 @@ SignalInsight_Reports/
 # Retain any future reference documentation PDFs in docs/
 !docs/**/*.pdf
 
+# Database, datasets and raw storage
+data/*.db
+data/signals/*
+data/cache/*
+data/backups/*
+data/datasets/*
+data/radioml/*
+*.pkl
+*.h5
+*.hdf5
+*.tar.bz2
+*.tar.gz
+!data/models/amc_xgboost_v1.json
+
 # =====================================================================
 # Large RF Captures & Binary Recordings
 # (Prevents multi-GB binary IQ dumps from bloating Git history)
