@@ -171,6 +171,9 @@ class MainWindow(QMainWindow):
         self.overview_view.run_requested.connect(self._on_overview_run_clicked)
         self.overview_view.export_requested.connect(self._export_pdf)
 
+        # Connect Comparison View actions
+        self.comparison_view.request_current_signal.connect(self._on_comp_use_current)
+
         self.central_stack.addWidget(self.analysis_tabs)
         self.setCentralWidget(self.central_stack)
 
@@ -505,8 +508,19 @@ class MainWindow(QMainWindow):
             if self.current_result:
                 self.demod_view.set_result(self.current_result)
         elif index == 6:
-            # Dual comparison tab
-            pass
+            # Dual comparison tab: automatically bind current active signal as Signal A
+            if self.current_signal is not None:
+                if self.comparison_view.sig_a is None or self.comparison_view.sig_a == self.current_signal:
+                    self.comparison_view.set_signal_a(self.current_signal, self.current_result)
+
+    def _on_comp_use_current(self, target: str) -> None:
+        if self.current_signal is None:
+            QMessageBox.warning(self, "No Signal", "No active signal loaded in the workspace to assign.")
+            return
+        if target == "A":
+            self.comparison_view.set_signal_a(self.current_signal, self.current_result)
+        else:
+            self.comparison_view.set_signal_b(self.current_signal, self.current_result)
 
     def _start_analysis(self, options: PipelineOptions) -> None:
         if self.current_signal is None:
