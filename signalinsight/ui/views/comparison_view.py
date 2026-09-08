@@ -37,6 +37,7 @@ class ComparisonView(QWidget):
         layout.setContentsMargins(4, 4, 4, 4)
         layout.setSpacing(4)
 
+        pg.setConfigOptions(antialias=False, enableExperimental=True)
         splitter = QSplitter()
 
         # Left Panel (Signal A)
@@ -111,22 +112,30 @@ class ComparisonView(QWidget):
         t_a = np.arange(min(len(sig_a.samples), 5000)) / sig_a.sample_rate
         s_a = sig_a.samples[: len(t_a)]
         self.plot_a_time.clear()
-        self.plot_a_time.plot(t_a, s_a.real, pen=COLOR_PRIMARY_ACCENT)
+        c_at = self.plot_a_time.plot(t_a, s_a.real, pen=COLOR_PRIMARY_ACCENT)
+        c_at.setDownsampling(auto=True, method="peak")
+        c_at.setClipToView(True)
 
         spec_a = FFTEngine.compute_spectrum(sig_a.samples, sample_rate=sig_a.sample_rate, fft_size=2048)
         self.plot_a_spec.clear()
-        self.plot_a_spec.plot(spec_a.frequencies, spec_a.power_db, pen=COLOR_PRIMARY_ACCENT)
+        c_as = self.plot_a_spec.plot(spec_a.frequencies, spec_a.power_db, pen=COLOR_PRIMARY_ACCENT)
+        c_as.setDownsampling(auto=True, method="peak")
+        c_as.setClipToView(True)
 
         # Update B
         self.lbl_sig_b.setText(f"Signal B: {sig_b.source_file.name if sig_b.source_file else 'Record B'}")
         t_b = np.arange(min(len(sig_b.samples), 5000)) / sig_b.sample_rate
         s_b = sig_b.samples[: len(t_b)]
         self.plot_b_time.clear()
-        self.plot_b_time.plot(t_b, s_b.real, pen=COLOR_WARNING)
+        c_bt = self.plot_b_time.plot(t_b, s_b.real, pen=COLOR_WARNING)
+        c_bt.setDownsampling(auto=True, method="peak")
+        c_bt.setClipToView(True)
 
         spec_b = FFTEngine.compute_spectrum(sig_b.samples, sample_rate=sig_b.sample_rate, fft_size=2048)
         self.plot_b_spec.clear()
-        self.plot_b_spec.plot(spec_b.frequencies, spec_b.power_db, pen=COLOR_WARNING)
+        c_bs = self.plot_b_spec.plot(spec_b.frequencies, spec_b.power_db, pen=COLOR_WARNING)
+        c_bs.setDownsampling(auto=True, method="peak")
+        c_bs.setClipToView(True)
 
         # Fill table
         if res_a:

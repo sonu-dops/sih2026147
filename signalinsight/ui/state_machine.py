@@ -1,6 +1,6 @@
 """UI action coordinator linked to the application state machine."""
 
-from typing import Dict, Optional
+from typing import Dict, List
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QPushButton
 
@@ -12,49 +12,56 @@ class UIStateCoordinator:
 
     def __init__(self, state_machine: StateMachine):
         self.state_machine = state_machine
-        self._actions: Dict[str, QAction] = {}
-        self._buttons: Dict[str, QPushButton] = {}
+        self._actions: Dict[str, List[QAction]] = {}
+        self._buttons: Dict[str, List[QPushButton]] = {}
         self.state_machine.add_transition_listener(self._on_state_change)
 
     def register_action(self, name: str, action: QAction) -> None:
-        self._actions[name] = action
+        if name not in self._actions:
+            self._actions[name] = []
+        if action not in self._actions[name]:
+            self._actions[name].append(action)
 
     def register_button(self, name: str, button: QPushButton) -> None:
-        self._buttons[name] = button
+        if name not in self._buttons:
+            self._buttons[name] = []
+        if button not in self._buttons[name]:
+            self._buttons[name].append(button)
 
     def update_ui_for_state(self, state: AppState) -> None:
         """Configures enabled/disabled status of controls based on current state."""
-        is_empty = state == AppState.EMPTY
         is_ready = state == AppState.READY
         is_processing = state == AppState.PROCESSING
         is_paused = state == AppState.PAUSED
         is_completed = state == AppState.COMPLETED
+        is_error = state == AppState.ERROR
+        is_cancelled = state == AppState.CANCELLED
 
-        # Run action / button
-        can_run = is_ready or is_completed or is_paused
-        if "run" in self._actions:
-            self._actions["run"].setEnabled(can_run)
-        if "run" in self._buttons:
-            self._buttons["run"].setEnabled(can_run)
+        # Run action / button - only allow running when idle
+        can_run = (is_ready or is_completed or is_paused or is_error or is_cancelled) and not is_processing
+        for act in self._actions.get("run", []):
+            act.setEnabled(can_run)
+        for btn in self._buttons.get("run", []):
+            btn.setEnabled(can_run)
 
         # Stop action / button
         can_stop = is_processing or is_paused
-        if "stop" in self._actions:
-            self._actions["stop"].setEnabled(can_stop)
-        if "stop" in self._buttons:
-            self._buttons["stop"].setEnabled(can_stop)
+        for act in self._actions.get("stop", []):
+            act.setEnabled(can_stop)
+        for btn in self._buttons.get("stop", []):
+            btn.setEnabled(can_stop)
 
         # Pause action / button
-        if "pause" in self._actions:
-            self._actions["pause"].setEnabled(is_processing)
-        if "pause" in self._buttons:
-            self._buttons["pause"].setEnabled(is_processing)
+        for act in self._actions.get("pause", []):
+            act.setEnabled(is_processing)
+        for btn in self._buttons.get("pause", []):
+            btn.setEnabled(is_processing)
 
         # Export actions
         can_export = is_ready or is_completed
         for exp_key in ("export_data", "export_report", "export_sigmf"):
-            if exp_key in self._actions:
-                self._actions[exp_key].setEnabled(can_export)
+            for act in self._actions.get(exp_key, []):
+                act.setEnabled(can_export)
 
     def _on_state_change(self, old_state: AppState, new_state: AppState) -> None:
         self.update_ui_for_state(new_state)

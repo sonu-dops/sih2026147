@@ -1,0 +1,457 @@
+[
+  {
+    "filename": "1kuns_pf.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "1KUNS-PF CubeSat Telemetry",
+    "size_bytes": 487190,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/1kuns_pf.wav"
+  },
+  {
+    "filename": "aalto1.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "Aalto-1 Finnish Satellite Transmissions",
+    "size_bytes": 645166,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/aalto1.wav"
+  },
+  {
+    "filename": "aausat_4.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "AAUSAT-4 Aalborg University CubeSat",
+    "size_bytes": 307244,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/aausat_4.wav"
+  },
+  {
+    "filename": "aisat.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "AISat Maritime Tracking Satellite",
+    "size_bytes": 1247702,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/aisat.wav"
+  },
+  {
+    "filename": "aistechsat3.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "AISTechSat-3 Telemetry",
+    "size_bytes": 292680,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/aistechsat3.wav"
+  },
+  {
+    "filename": "amgu_1.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "AmGU-1 Russian University Satellite",
+    "size_bytes": 120224,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/amgu_1.wav"
+  },
+  {
+    "filename": "ao27.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "AMSAT-OSCAR 27 Satellite Signal",
+    "size_bytes": 214182,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/ao27.wav"
+  },
+  {
+    "filename": "ao73.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "FUNcube-1 (AO-73) BPSK Telemetry",
+    "size_bytes": 535530,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/ao73.wav"
+  },
+  {
+    "filename": "astrocast.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "Astrocast IoT Nanosatellite FSK",
+    "size_bytes": 714958,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/astrocast.wav"
+  },
+  {
+    "filename": "astrocast_9k6.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "Astrocast 9600 bps FSK Packet",
+    "size_bytes": 345852,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/astrocast_9k6.wav"
+  },
+  {
+    "filename": "astrocast_old.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "Astrocast Early Transmissions",
+    "size_bytes": 275778,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/astrocast_old.wav"
+  },
+  {
+    "filename": "at03.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "Aleph-03 / NuSat-3 Earth Observation",
+    "size_bytes": 132314,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/at03.wav"
+  },
+  {
+    "filename": "athenoxat_1.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "Athenoxat-1 CubeSat",
+    "size_bytes": 411424,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/athenoxat_1.wav"
+  },
+  {
+    "filename": "atl_1.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "ATL-1 Hungarian PocketQube",
+    "size_bytes": 1490528,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/atl_1.wav"
+  },
+  {
+    "filename": "au02.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "Aleph-02 Satellite Beacon",
+    "size_bytes": 201712,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/au02.wav"
+  },
+  {
+    "filename": "au03.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "Aleph-03 Satellite Beacon",
+    "size_bytes": 489326,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/au03.wav"
+  },
+  {
+    "filename": "az02.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "Azercosmos Satellite Signal",
+    "size_bytes": 348396,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/az02.wav"
+  },
+  {
+    "filename": "beesat_9.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "Beesat-9 TU Berlin CubeSat GMSK",
+    "size_bytes": 255878,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/beesat_9.wav"
+  },
+  {
+    "filename": "by02.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "BY-02 Amateur Radio Satellite",
+    "size_bytes": 550938,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/by02.wav"
+  },
+  {
+    "filename": "by701.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "BY70-1 Chinese Satellite BPSK",
+    "size_bytes": 1220950,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/by701.wav"
+  },
+  {
+    "filename": "ca03.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "CubeSat-3 Downlink",
+    "size_bytes": 429410,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/ca03.wav"
+  },
+  {
+    "filename": "ca03_9k6.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "CubeSat-3 9600 bps Transmit",
+    "size_bytes": 762402,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/ca03_9k6.wav"
+  },
+  {
+    "filename": "cape3.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "CAPE-3 Univ of Louisiana Satellite",
+    "size_bytes": 504914,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/cape3.wav"
+  },
+  {
+    "filename": "cz02.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "Czech Satellite Telemetry",
+    "size_bytes": 802602,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/cz02.wav"
+  },
+  {
+    "filename": "delphini1.wav",
+    "format": "WAV",
+    "type": "Satellite RF Transmission",
+    "description": "Delphini-1 Aarhus Univ Satellite",
+    "size_bytes": 1055474,
+    "source_url": "https://raw.githubusercontent.com/daniestevez/satellite-recordings/master/delphini1.wav"
+  },
+  {
+    "filename": "ask_mod.iq",
+    "format": "IQ (Raw float32 complex)",
+    "type": "Wireless Protocol Capture",
+    "description": "Amplitude Shift Keying (ASK) Modulated Signal",
+    "size_bytes": 14400,
+    "source_url": "https://raw.githubusercontent.com/jopohl/urh/master/tests/data/ASK_mod.complex"
+  },
+  {
+    "filename": "fsk10.iq",
+    "format": "IQ (Raw float32 complex)",
+    "type": "Wireless Protocol Capture",
+    "description": "Frequency Shift Keying 10 kHz Dev (FSK)",
+    "size_bytes": 64000,
+    "source_url": "https://raw.githubusercontent.com/jopohl/urh/master/tests/data/FSK10.complex"
+  },
+  {
+    "filename": "fsk15.iq",
+    "format": "IQ (Raw float32 complex)",
+    "type": "Wireless Protocol Capture",
+    "description": "Frequency Shift Keying 15 kHz Dev (FSK)",
+    "size_bytes": 64000,
+    "source_url": "https://raw.githubusercontent.com/jopohl/urh/master/tests/data/FSK15.complex"
+  },
+  {
+    "filename": "ask_carrier.iq",
+    "format": "IQ (Raw float32 complex)",
+    "type": "Wireless Protocol Capture",
+    "description": "ASK Wireless Carrier",
+    "size_bytes": 109680,
+    "source_url": "https://raw.githubusercontent.com/jopohl/urh/master/tests/data/ask.complex"
+  },
+  {
+    "filename": "ask50_rf.iq",
+    "format": "IQ (Raw float32 complex)",
+    "type": "Wireless Protocol Capture",
+    "description": "ASK 50 kbaud Wireless Packet",
+    "size_bytes": 720000,
+    "source_url": "https://raw.githubusercontent.com/jopohl/urh/master/tests/data/ask50.complex"
+  },
+  {
+    "filename": "ask_short_burst.iq",
+    "format": "IQ (Raw float32 complex)",
+    "type": "Wireless Protocol Capture",
+    "description": "Short ASK RF Burst",
+    "size_bytes": 1048,
+    "source_url": "https://raw.githubusercontent.com/jopohl/urh/master/tests/data/ask_short.complex"
+  },
+  {
+    "filename": "cc1101_rf.iq",
+    "format": "IQ (Raw float32 complex)",
+    "type": "Wireless Protocol Capture",
+    "description": "TI CC1101 Sub-GHz Transceiver Capture",
+    "size_bytes": 117376,
+    "source_url": "https://raw.githubusercontent.com/jopohl/urh/master/tests/data/cc1101.complex"
+  },
+  {
+    "filename": "enocean_sensor.iq",
+    "format": "IQ (Raw float32 complex)",
+    "type": "Wireless Protocol Capture",
+    "description": "EnOcean IoT Energy-Harvesting Wireless Sensor",
+    "size_bytes": 392800,
+    "source_url": "https://raw.githubusercontent.com/jopohl/urh/master/tests/data/enocean.complex"
+  },
+  {
+    "filename": "fsk_capture.iq",
+    "format": "IQ (Raw float32 complex)",
+    "type": "Wireless Protocol Capture",
+    "description": "FSK 2-Level Digital Frequency Modulation",
+    "size_bytes": 543296,
+    "source_url": "https://raw.githubusercontent.com/jopohl/urh/master/tests/data/fsk.complex"
+  },
+  {
+    "filename": "homematic_rf_noisy.iq",
+    "format": "IQ (Raw float32 complex)",
+    "type": "Wireless Protocol Capture",
+    "description": "HomeMatic 868MHz Smart Home RF with Noise",
+    "size_bytes": 903744,
+    "source_url": "https://raw.githubusercontent.com/jopohl/urh/master/tests/data/noised_homematic.complex"
+  },
+  {
+    "filename": "psk_noisy.iq",
+    "format": "IQ (Raw float32 complex)",
+    "type": "Wireless Protocol Capture",
+    "description": "Phase Shift Keying (PSK) with AWGN Noise",
+    "size_bytes": 14544,
+    "source_url": "https://raw.githubusercontent.com/jopohl/urh/master/tests/data/psk_gen_noisy.complex"
+  },
+  {
+    "filename": "psk_clean.iq",
+    "format": "IQ (Raw float32 complex)",
+    "type": "Wireless Protocol Capture",
+    "description": "Phase Shift Keying (PSK) Clean Baseband",
+    "size_bytes": 720000,
+    "source_url": "https://raw.githubusercontent.com/jopohl/urh/master/tests/data/psk_generated.complex"
+  },
+  {
+    "filename": "remote_outlet_433mhz.iq",
+    "format": "IQ (Raw float32 complex)",
+    "type": "Wireless Protocol Capture",
+    "description": "433.92 MHz Wireless Remote Power Outlet Pairing",
+    "size_bytes": 505448,
+    "source_url": "https://raw.githubusercontent.com/jopohl/urh/master/tests/data/steckdose_anlernen.complex"
+  },
+  {
+    "filename": "three_channels_fsk.iq",
+    "format": "IQ (Raw float32 complex)",
+    "type": "Wireless Protocol Capture",
+    "description": "Multi-Carrier 3-Channel FSK Transmission",
+    "size_bytes": 6400,
+    "source_url": "https://raw.githubusercontent.com/jopohl/urh/master/tests/data/three_channels.complex"
+  },
+  {
+    "filename": "wsp_weather_telemetry.iq",
+    "format": "IQ (Raw float32 complex)",
+    "type": "Wireless Protocol Capture",
+    "description": "Weather Station Protocol (WSP) Telemetry",
+    "size_bytes": 626720,
+    "source_url": "https://raw.githubusercontent.com/jopohl/urh/master/tests/data/wsp.complex"
+  },
+  {
+    "filename": "jansite_tpms_433m92.iq",
+    "format": "IQ (Converted to standard float32 complex)",
+    "type": "Sub-GHz ISM Capture",
+    "description": "Jansite Solar Tire Pressure Sensor (433.92 MHz, 250 ksps)",
+    "size_bytes": 695768,
+    "sample_rate_hz": 250000,
+    "source_url": "https://raw.githubusercontent.com/merbanan/rtl_433_tests/master/tests/Jansite_TPMS/01/RL-27-21_433.92M_250k.cu8"
+  },
+  {
+    "filename": "toyota_tpms_315m.iq",
+    "format": "IQ (Converted to standard float32 complex)",
+    "type": "Sub-GHz ISM Capture",
+    "description": "Toyota Car Tire Pressure Sensor (315 MHz, 250 ksps)",
+    "size_bytes": 524288,
+    "sample_rate_hz": 250000,
+    "source_url": "https://raw.githubusercontent.com/merbanan/rtl_433_tests/master/tests/Toyota_TPMS/gfile011.cu8"
+  },
+  {
+    "filename": "vivint_door_sensor_345m.iq",
+    "format": "IQ (Converted to standard float32 complex)",
+    "type": "Sub-GHz ISM Capture",
+    "description": "Vivint Home Security Door/Window Sensor (345 MHz, 250 ksps)",
+    "size_bytes": 2097152,
+    "sample_rate_hz": 250000,
+    "source_url": "https://raw.githubusercontent.com/merbanan/rtl_433_tests/master/tests/vivint/V-DW21R-345/01/g001_344.975M_250k.cu8"
+  },
+  {
+    "filename": "tfa_weather_868m33.iq",
+    "format": "IQ (Converted to standard float32 complex)",
+    "type": "Sub-GHz ISM Capture",
+    "description": "TFA Weather Temp & Humidity Sensor (868.33 MHz, 250 ksps)",
+    "size_bytes": 1048576,
+    "sample_rate_hz": 250000,
+    "source_url": "https://raw.githubusercontent.com/merbanan/rtl_433_tests/master/tests/TFA_30.3196_TempHumid/g003_868.33M_250k.cu8"
+  },
+  {
+    "filename": "conrad_pool_thermometer_433m92.iq",
+    "format": "IQ (Converted to standard float32 complex)",
+    "type": "Sub-GHz ISM Capture",
+    "description": "Conrad Pool Floating Thermometer (433.92 MHz, 250 ksps)",
+    "size_bytes": 2097152,
+    "sample_rate_hz": 250000,
+    "source_url": "https://raw.githubusercontent.com/merbanan/rtl_433_tests/master/tests/conrad_pool_thermometer/01/t183c_433.92M_250k.cu8"
+  },
+  {
+    "filename": "oregon_scientific_weather.iq",
+    "format": "IQ (Converted to standard float32 complex)",
+    "type": "Sub-GHz ISM Capture",
+    "description": "Oregon Scientific Weather Station (433.92 MHz, 250 ksps)",
+    "size_bytes": 1572864,
+    "sample_rate_hz": 250000,
+    "source_url": "https://raw.githubusercontent.com/merbanan/rtl_433_tests/master/tests/oregon_scientific/sl109h/1461447901.gfile.cu8"
+  },
+  {
+    "filename": "xc0324_weather_station.iq",
+    "format": "IQ (Converted to standard float32 complex)",
+    "type": "Sub-GHz ISM Capture",
+    "description": "XC-0324 Outdoor Weather Station (433.92 MHz, 250 ksps)",
+    "size_bytes": 524288,
+    "sample_rate_hz": 250000,
+    "source_url": "https://raw.githubusercontent.com/merbanan/rtl_433_tests/master/tests/XC-0324/02/g001_433.917M_250k.cu8"
+  },
+  {
+    "filename": "waveman_remote_ch1.iq",
+    "format": "IQ (Converted to standard float32 complex)",
+    "type": "Sub-GHz ISM Capture",
+    "description": "Waveman 433MHz Home Automation Remote",
+    "size_bytes": 1572864,
+    "sample_rate_hz": 250000,
+    "source_url": "https://raw.githubusercontent.com/merbanan/rtl_433_tests/master/tests/waveman/01/gfile014.cu8"
+  },
+  {
+    "filename": "waveman_remote_ch2.iq",
+    "format": "IQ (Converted to standard float32 complex)",
+    "type": "Sub-GHz ISM Capture",
+    "description": "Waveman 433MHz Remote Button Press",
+    "size_bytes": 1572864,
+    "sample_rate_hz": 250000,
+    "source_url": "https://raw.githubusercontent.com/merbanan/rtl_433_tests/master/tests/waveman/01/gfile010.cu8"
+  },
+  {
+    "filename": "emax_smart_meter.iq",
+    "format": "IQ (Converted to standard float32 complex)",
+    "type": "Sub-GHz ISM Capture",
+    "description": "Emax Wireless Energy/Sub-meter (433.92 MHz, 250 ksps)",
+    "size_bytes": 1048576,
+    "sample_rate_hz": 250000,
+    "source_url": "https://raw.githubusercontent.com/merbanan/rtl_433_tests/master/tests/emax/01/g014_433.92M_250k.cu8"
+  },
+  {
+    "filename": "ec3k_power_meter.iq",
+    "format": "IQ (Converted to standard float32 complex)",
+    "type": "Sub-GHz ISM Capture",
+    "description": "Energy Count 3000 (EC3K) Power Monitor",
+    "size_bytes": 524288,
+    "sample_rate_hz": 250000,
+    "source_url": "https://raw.githubusercontent.com/merbanan/rtl_433_tests/master/tests/ec3k/01/gfile005.cu8"
+  },
+  {
+    "filename": "rubicson_thermometer.iq",
+    "format": "IQ (Converted to standard float32 complex)",
+    "type": "Sub-GHz ISM Capture",
+    "description": "Rubicson Indoor/Outdoor Thermometer",
+    "size_bytes": 2097152,
+    "sample_rate_hz": 250000,
+    "source_url": "https://raw.githubusercontent.com/merbanan/rtl_433_tests/master/tests/rubicson/thermometer/01/gfile016.cu8"
+  },
+  {
+    "filename": "oil_watchman_level.iq",
+    "format": "IQ (Converted to standard float32 complex)",
+    "type": "Sub-GHz ISM Capture",
+    "description": "Watchman Oil Tank Ultrasonic Level Gauge (433.92 MHz)",
+    "size_bytes": 524288,
+    "sample_rate_hz": 250000,
+    "source_url": "https://raw.githubusercontent.com/merbanan/rtl_433_tests/master/tests/oil_watchman/03/gfile019.cu8"
+  },
+  {
+    "filename": "oil_watchman_alarm.iq",
+    "format": "IQ (Converted to standard float32 complex)",
+    "type": "Sub-GHz ISM Capture",
+    "description": "Watchman Sonic Oil Gauge Leak Alarm",
+    "size_bytes": 524288,
+    "sample_rate_hz": 250000,
+    "source_url": "https://raw.githubusercontent.com/merbanan/rtl_433_tests/master/tests/oil_watchman/08/gfile127.cu8"
+  },
+  {
+    "filename": "adlm_fprf_transceiver.iq",
+    "format": "IQ (Converted to standard float32 complex)",
+    "type": "Sub-GHz ISM Capture",
+    "description": "ADLM Multi-Channel RF Transceiver",
+    "size_bytes": 1572864,
+    "sample_rate_hz": 250000,
+    "source_url": "https://raw.githubusercontent.com/merbanan/rtl_433_tests/master/tests/adlm_fprf/01/g005_433.92M_250k.cu8"
+  }
+]

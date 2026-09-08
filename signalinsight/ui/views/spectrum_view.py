@@ -3,7 +3,7 @@
 from typing import Optional
 import numpy as np
 import pyqtgraph as pg
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import QTimer, Qt, pyqtSignal
 from PyQt6.QtWidgets import QComboBox, QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 from signalinsight.core.constants import (
@@ -71,7 +71,7 @@ class SpectrumView(QWidget):
         layout.addLayout(ctrl_layout)
 
         # Plot Widget
-        pg.setConfigOptions(antialias=True)
+        pg.setConfigOptions(antialias=False, enableExperimental=True)
         self.plot_widget = pg.PlotWidget()
         self.plot_widget.setBackground(COLOR_PLOT_BG)
         self.plot_widget.showGrid(x=True, y=True, alpha=0.5)
@@ -79,6 +79,8 @@ class SpectrumView(QWidget):
         self.plot_widget.setLabel("left", "Spectral Density", units="dBFS/Hz")
 
         self.curve_spec = self.plot_widget.plot(pen=pg.mkPen(COLOR_TRACE_PSD, width=1.5))
+        self.curve_spec.setDownsampling(auto=True, method="peak")
+        self.curve_spec.setClipToView(True)
 
         # Peak Point Marker
         self.peak_scatter = pg.ScatterPlotItem(
@@ -94,6 +96,13 @@ class SpectrumView(QWidget):
         self.h_line = pg.InfiniteLine(angle=0, movable=False, pen=pg.mkPen("#94a3b8", style=Qt.PenStyle.DashLine))
         self.plot_widget.addItem(self.v_line, ignoreBounds=True)
         self.plot_widget.addItem(self.h_line, ignoreBounds=True)
+
+        # 60 FPS throttler for crosshair tracking (16 ms debounce)
+        self._mouse_timer = QTimer(self)
+        self._mouse_timer.setInterval(16)
+        self._mouse_timer.setSingleShot(True)
+        self._mouse_timer.timeout.connect(self._process_mouse_move)
+        self._pending_mouse_pos = None
 
         self.plot_widget.scene().sigMouseMoved.connect(self._on_mouse_moved)
 
@@ -162,6 +171,14 @@ class SpectrumView(QWidget):
         self.peak_label.setText(f"Peak: {f_str} @ {peak_v:.2f} dBFS")
 
     def _on_mouse_moved(self, pos) -> None:
+        self._pending_mouse_pos = pos
+        if not self._mouse_timer.isActive():
+            self._mouse_timer.start()
+
+    def _process_mouse_move(self) -> None:
+        if self._pending_mouse_pos is None:
+            return
+        pos = self._pending_mouse_pos
         if self.plot_widget.sceneBoundingRect().contains(pos):
             mouse_point = self.plot_widget.plotItem.vb.mapSceneToView(pos)
             self.v_line.setPos(mouse_point.x())

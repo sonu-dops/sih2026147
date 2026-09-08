@@ -48,6 +48,16 @@ from signalinsight.reporting.sigmf_export import SigMFExporter
 from signalinsight.ui.dialogs.about_dialog import AboutDialog
 from signalinsight.ui.dialogs.batch_dialog import BatchProcessorDialog
 from signalinsight.ui.dialogs.generator_dialog import SignalGeneratorDialog
+
+try:
+    from backend.app.db.database import SessionLocal, init_db
+    from backend.app.db.models.project import Project
+    from backend.app.db.models.signal import SignalFile
+    from backend.app.db.models.analysis import AnalysisRun, AnalysisResult as DBAnalysisResult, Feature
+    from backend.app.db.models.amc import Classification
+    DB_AVAILABLE = True
+except Exception:
+    DB_AVAILABLE = False
 from signalinsight.ui.dialogs.import_dialog import FileImportDialog
 from signalinsight.ui.dialogs.settings_dialog import SettingsDialog
 from signalinsight.ui.docks.analysis_control import AnalysisControlDock
@@ -83,6 +93,7 @@ class MainWindow(QMainWindow):
         self.current_signal: Optional[SignalRecord] = None
         self.current_result: Optional[AnalysisResult] = None
         self.worker: Optional[AnalysisWorker] = None
+        self._dirty_tabs: set[int] = set()
 
         self._init_docks()
         self._init_central_views()
@@ -147,6 +158,7 @@ class MainWindow(QMainWindow):
         self.analysis_tabs.addTab(self.spectrogram_view, "SPECTROGRAM")
         self.analysis_tabs.addTab(self.constellation_view, "CONSTELLATION")
         self.analysis_tabs.addTab(self.comparison_view, "DUAL COMPARISON")
+        self.analysis_tabs.currentChanged.connect(self._on_tab_changed)
 
         self.central_stack.addWidget(self.analysis_tabs)
         self.setCentralWidget(self.central_stack)
@@ -176,6 +188,11 @@ class MainWindow(QMainWindow):
         self.dock_control.stop_requested.connect(self._stop_analysis)
         self.dock_control.reset_requested.connect(self._reset_analysis)
 
+        # Register Dock buttons with state coordinator
+        self.state_coordinator.register_button("run", self.dock_control.btn_run)
+        self.state_coordinator.register_button("stop", self.dock_control.btn_stop)
+        self.state_coordinator.register_button("pause", self.dock_control.btn_pause)
+
         # Bottom Docks
         self.dock_console = MessageConsoleDock(self)
         self.dock_queue = QueueDock(self)
@@ -203,6 +220,8 @@ class MainWindow(QMainWindow):
         act_open_proj = QAction("Open Project...", self)
         act_save_proj = QAction("Save Project", self)
         act_save_proj.setShortcut(QKeySequence("Ctrl+S"))
+        act_open_proj.triggered.connect(self._open_project)
+        act_save_proj.triggered.connect(self._save_project)
         m_file.addAction(act_open_proj)
         m_file.addAction(act_save_proj)
 
@@ -337,11 +356,15 @@ class MainWindow(QMainWindow):
         self.progress_bar.setValue(0)
         self.progress_bar.setVisible(False)
 
+        self.lbl_backend_status = QLabel("DB: Connected (SQLite)" if DB_AVAILABLE else "DB: Standalone")
+        self.lbl_backend_status.setStyleSheet("color: #0284c7; font-weight: bold;")
+
         sb.addWidget(self.lbl_status)
         sb.addWidget(self.progress_bar)
         sb.addPermanentWidget(self.lbl_file_status)
         sb.addPermanentWidget(self.lbl_sr_status)
         sb.addPermanentWidget(self.lbl_fc_status)
+        sb.addPermanentWidget(self.lbl_backend_status)
         sb.addPermanentWidget(self.lbl_engine_status)
 
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:
@@ -396,12 +419,12 @@ class MainWindow(QMainWindow):
         self.current_signal = signal_rec
         self.current_result = None
 
-        # Update Visuals
+        # Mark all tabs dirty and only render the currently visible tab
+        self._dirty_tabs = {0, 1, 2, 3, 4}
         self.central_stack.setCurrentWidget(self.analysis_tabs)
-        self.time_view.set_signal(signal_rec)
-        self.spectrum_view.set_signal(signal_rec)
-        self.spectrogram_view.set_signal(signal_rec)
-        self.constellation_view.set_raw_symbols(signal_rec.samples)
+        current_idx = self.analysis_tabs.currentIndex()
+        self._render_tab(current_idx)
+        self._dirty_tabs.discard(current_idx)
 
         # Update Docks
         self.dock_workspace.set_active_signal(signal_rec)
@@ -420,10 +443,46 @@ class MainWindow(QMainWindow):
         self.state_machine.transition_to(AppState.READY)
         logger.info("Workspace", f"Signal loaded: {fn_str} ({signal_rec.sample_count:,} samples, {signal_rec.duration:.4f} s)")
 
+    def _on_tab_changed(self, index: int) -> None:
+        """Lazily renders a tab only when the user switches to it if marked dirty."""
+        if index in self._dirty_tabs:
+            self._render_tab(index)
+            self._dirty_tabs.discard(index)
+
+    def _render_tab(self, index: int) -> None:
+        """Renders specific analysis tab data on demand."""
+        if self.current_signal is None:
+            return
+        if index == 0:
+            self.time_view.set_signal(self.current_signal)
+        elif index == 1:
+            self.spectrum_view.set_signal(self.current_signal)
+        elif index == 2:
+            self.spectrogram_view.set_signal(self.current_signal)
+        elif index == 3:
+            if self.current_result and self.current_result.demodulation_result:
+                self.constellation_view.set_demod_result(self.current_result.demodulation_result)
+            else:
+                self.constellation_view.set_raw_symbols(self.current_signal.samples)
+        elif index == 4:
+            # Dual comparison tab
+            pass
+
     def _start_analysis(self, options: PipelineOptions) -> None:
         if self.current_signal is None:
             QMessageBox.warning(self, "No Signal", "Please load or generate an RF signal before running analysis.")
             return
+
+        # Prevent duplicate concurrent analysis executions and clean up previous worker
+        if self.worker is not None:
+            if self.worker.isRunning():
+                logger.warning("Pipeline", "Analysis is already executing. Ignoring duplicate run request.")
+                return
+            try:
+                self.worker.wait(1000)
+            except Exception:
+                pass
+            self.worker = None
 
         self.state_machine.transition_to(AppState.PROCESSING)
         self.lbl_status.setText("Processing...")
@@ -431,13 +490,18 @@ class MainWindow(QMainWindow):
         self.progress_bar.setVisible(True)
         self.progress_bar.setValue(0)
 
-        # Launch QThread background worker
-        self.worker = AnalysisWorker(self.current_signal, options=options)
+        # Launch QThread background worker with parent lifecycle
+        self.worker = AnalysisWorker(self.current_signal, options=options, parent=self)
         self.worker.signals.progress.connect(self._on_analysis_progress)
         self.worker.signals.finished.connect(self._on_analysis_finished)
         self.worker.signals.error.connect(self._on_analysis_error)
         self.worker.signals.cancelled.connect(self._on_analysis_cancelled)
+        self.worker.finished.connect(self._on_worker_thread_done)
         self.worker.start()
+
+    def _on_worker_thread_done(self) -> None:
+        """Invoked when the background QThread terminates cleanly."""
+        pass
 
     def _pause_analysis(self) -> None:
         # Toggle pause state
@@ -469,12 +533,28 @@ class MainWindow(QMainWindow):
         self.lbl_status.setStyleSheet(f"color: {COLOR_SUCCESS}; font-weight: bold;")
         self.state_machine.transition_to(AppState.COMPLETED)
 
-        # Update Results Summary Dock
-        self.dock_results.set_result(result)
+        try:
+            # Update Results Summary Dock
+            self.dock_results.set_result(result)
+        except Exception as e:
+            logger.error("UI", f"Error updating results dock: {e}")
 
-        # Update Constellation View if demodulation result exists
-        if result.demodulation_result:
-            self.constellation_view.set_demod_result(result.demodulation_result)
+        try:
+            # Update Constellation View if demodulation result exists
+            if result.demodulation_result:
+                if self.analysis_tabs.currentIndex() == 3:
+                    self.constellation_view.set_demod_result(result.demodulation_result)
+                    self._dirty_tabs.discard(3)
+                else:
+                    self._dirty_tabs.add(3)
+        except Exception as e:
+            logger.error("UI", f"Error updating constellation view: {e}")
+
+        try:
+            # Persist results to database
+            self._persist_analysis_to_db(result)
+        except Exception as e:
+            logger.error("Database", f"Error persisting analysis to database: {e}")
 
         logger.info(
             "Pipeline",
@@ -553,3 +633,117 @@ class MainWindow(QMainWindow):
     def _open_about(self) -> None:
         dlg = AboutDialog(self)
         dlg.exec()
+
+    def _save_project(self) -> None:
+        """Saves project to database and optionally to disk as .siproj."""
+        fn, _ = QFileDialog.getSaveFileName(self, "Save SignalInsight Project", "project.siproj", "SignalInsight Project (*.siproj)")
+        if not fn:
+            return
+        proj_name = Path(fn).stem
+        if DB_AVAILABLE:
+            try:
+                with SessionLocal() as db:
+                    p = db.query(Project).filter(Project.name == proj_name).first()
+                    if not p:
+                        p = Project(name=proj_name, description=f"Saved from workstation: {fn}")
+                        db.add(p)
+                        db.commit()
+            except Exception as e:
+                logger.warning("Project", f"DB project save fallback: {e}")
+
+        # Also serialize JSON project file
+        proj = ProjectFile()
+        proj.metadata.name = proj_name
+        if self.current_signal and self.current_signal.source_file:
+            proj.signal_files = [str(self.current_signal.source_file)]
+            proj.active_signal_file = str(self.current_signal.source_file)
+        ProjectManager.save_project(proj, Path(fn))
+        QMessageBox.information(self, "Project Saved", f"Project saved successfully:\n{fn}")
+
+    def _open_project(self) -> None:
+        """Loads project from file or database."""
+        fn, _ = QFileDialog.getOpenFileName(self, "Open SignalInsight Project", "", "SignalInsight Project (*.siproj)")
+        if not fn:
+            return
+        try:
+            proj = ProjectManager.load_project(Path(fn))
+            if proj.active_signal_file and Path(proj.active_signal_file).exists():
+                self._load_file_path(Path(proj.active_signal_file))
+            QMessageBox.information(self, "Project Loaded", f"Loaded project: {proj.metadata.name}")
+        except Exception as e:
+            QMessageBox.critical(self, "Project Error", f"Unable to open project:\n{e}")
+
+    def _persist_analysis_to_db(self, result: AnalysisResult) -> None:
+        """Persists the completed analysis run and metrics to the database."""
+        if not DB_AVAILABLE or not self.current_signal:
+            return
+        try:
+            with SessionLocal() as db:
+                src_path = str(self.current_signal.source_file) if self.current_signal.source_file else "Synthetic"
+                sig = db.query(SignalFile).filter(SignalFile.file_hash == result.file_hash_sha256).first()
+                if not sig:
+                    sig = SignalFile(
+                        filename=Path(src_path).name,
+                        original_path=src_path,
+                        file_hash=result.file_hash_sha256 or "hash_in_memory",
+                        file_size=self.current_signal.sample_count * 8,
+                        format="WAV" if src_path.endswith(".wav") else "IQ",
+                        data_type=self.current_signal.data_type,
+                        sample_count=self.current_signal.sample_count,
+                        sample_rate=self.current_signal.sample_rate,
+                        center_frequency=self.current_signal.center_frequency,
+                        duration=self.current_signal.duration,
+                    )
+                    db.add(sig)
+                    db.commit()
+                    db.refresh(sig)
+
+                run = AnalysisRun(
+                    signal_file_id=sig.id,
+                    status="COMPLETED",
+                    started_at=result.timestamp,
+                    completed_at=result.timestamp,
+                    pipeline_version="1.0.0",
+                )
+                db.add(run)
+                db.commit()
+                db.refresh(run)
+
+                db_res = DBAnalysisResult(
+                    analysis_run_id=run.id,
+                    carrier_frequency=result.carrier_frequency.value,
+                    carrier_offset=result.carrier_offset.value,
+                    symbol_rate=result.symbol_rate.value,
+                    occupied_bandwidth=result.occupied_bw_99.value,
+                    bandwidth_3db=result.bandwidth_3db.value,
+                    snr=result.snr_db.value,
+                    signal_power=result.signal_power.value,
+                    noise_floor=result.noise_floor.value,
+                    dc_offset_i=result.dc_offset_i.value,
+                    dc_offset_q=result.dc_offset_q.value,
+                    confidence=1.0,
+                    quality="HIGH",
+                )
+                db.add(db_res)
+
+                if result.modulation_result:
+                    clf = Classification(
+                        analysis_run_id=run.id,
+                        predicted_class=result.modulation_result.predicted_modulation,
+                        confidence=result.modulation_result.confidence,
+                        class_probabilities=result.modulation_result.class_probabilities,
+                        model_version=result.modulation_result.model_version,
+                    )
+                    db.add(clf)
+
+                db.commit()
+                logger.info("Database", f"Persisted analysis run {run.id} for signal {sig.filename}")
+        except Exception as e:
+            logger.warning("Database", f"Failed auto-persisting analysis run to database: {e}")
+
+    def closeEvent(self, event) -> None:
+        """Ensures background threads are safely terminated before exiting."""
+        if self.worker is not None and self.worker.isRunning():
+            self.worker.cancel()
+            self.worker.wait(1500)
+        event.accept()

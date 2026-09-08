@@ -65,6 +65,7 @@ class ConstellationView(QWidget):
         layout.addLayout(ctrl_layout)
 
         # Plot Widget
+        pg.setConfigOptions(antialias=False, enableExperimental=True)
         self.plot_widget = pg.PlotWidget()
         self.plot_widget.setBackground(COLOR_PLOT_BG)
         self.plot_widget.showGrid(x=True, y=True, alpha=0.5)
@@ -78,13 +79,14 @@ class ConstellationView(QWidget):
         self.plot_widget.addItem(self.axis_v)
         self.plot_widget.addItem(self.axis_h)
 
-        # Received Scatter Points
+        # Received Scatter Points (useCache=True prevents re-rendering point glyphs)
         self.scatter_received = pg.ScatterPlotItem(
             size=5,
             pen=None,
             brush=pg.mkBrush(COLOR_CONSTELLATION),
             symbol="o",
             pxMode=True,
+            useCache=True,
         )
         self.plot_widget.addItem(self.scatter_received)
 
@@ -95,6 +97,7 @@ class ConstellationView(QWidget):
             brush=pg.mkBrush(0, 0, 0, 0),
             symbol="+",
             pxMode=True,
+            useCache=True,
         )
         self.plot_widget.addItem(self.scatter_ideal)
 
@@ -130,27 +133,32 @@ class ConstellationView(QWidget):
 
         lim_str = self.combo_pts.currentText()
         if lim_str == "All":
-            sub_syms = self.symbols
+            sub_syms = self.symbols[:5000]
         else:
-            lim = int(lim_str)
+            try:
+                lim = min(int(lim_str), 5000)
+            except ValueError:
+                lim = 1000
             sub_syms = self.symbols[:lim]
 
         # Normalize received symbols to average unit power for standard constellation display
         p_avg = np.mean(np.abs(sub_syms) ** 2)
         norm_syms = sub_syms / np.sqrt(max(p_avg, 1e-12))
 
-        # Received points
-        recv_data = [{"pos": (float(s.real), float(s.imag))} for s in norm_syms]
-        self.scatter_received.setData(recv_data)
+        # Vectorized safe float arrays for pyqtgraph
+        x_pts = np.nan_to_num(np.asarray(norm_syms.real, dtype=np.float32), nan=0.0, posinf=1.0, neginf=-1.0)
+        y_pts = np.nan_to_num(np.asarray(norm_syms.imag, dtype=np.float32), nan=0.0, posinf=1.0, neginf=-1.0)
+        self.scatter_received.setData(x=x_pts, y=y_pts)
 
         # Ideal reference points
         if self.ideal_symbols is not None and len(self.ideal_symbols) > 0:
             p_ideal = np.mean(np.abs(self.ideal_symbols) ** 2)
             norm_ideal = self.ideal_symbols / np.sqrt(max(p_ideal, 1e-12))
-            ideal_data = [{"pos": (float(s.real), float(s.imag))} for s in norm_ideal]
-            self.scatter_ideal.setData(ideal_data)
+            ix_pts = np.nan_to_num(np.asarray(norm_ideal.real, dtype=np.float32), nan=0.0, posinf=1.0, neginf=-1.0)
+            iy_pts = np.nan_to_num(np.asarray(norm_ideal.imag, dtype=np.float32), nan=0.0, posinf=1.0, neginf=-1.0)
+            self.scatter_ideal.setData(x=ix_pts, y=iy_pts)
         else:
-            self.scatter_ideal.setData([])
+            self.scatter_ideal.setData(x=np.array([], dtype=np.float32), y=np.array([], dtype=np.float32))
 
         self.plot_widget.setXRange(-2.0, 2.0)
         self.plot_widget.setYRange(-2.0, 2.0)

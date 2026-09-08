@@ -3,7 +3,7 @@
 from typing import Optional
 import numpy as np
 import pyqtgraph as pg
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 from PyQt6.QtWidgets import QCheckBox, QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 from signalinsight.core.constants import (
@@ -22,13 +22,25 @@ from signalinsight.dsp.analytic import AnalyticSignalEngine
 
 
 class TimeDomainView(QWidget):
-    """Displays I, Q, Magnitude, Envelope, Phase, and Instantaneous Frequency."""
+    """Displays I, Q, Magnitude, Envelope, Phase, and Instantaneous Frequency with high-performance decimation."""
 
     marker_requested = pyqtSignal(float, float)  # time, value
 
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.signal_rec: Optional[SignalRecord] = None
+        self._dec_samples: Optional[np.ndarray] = None
+        self._dec_t: Optional[np.ndarray] = None
+        self._dec_fs: float = 1.0
+        self._f_inst_computed: bool = False
+
+        # 60 FPS Crosshair throttler
+        self._mouse_timer = QTimer(self)
+        self._mouse_timer.setSingleShot(True)
+        self._mouse_timer.setInterval(16)
+        self._mouse_timer.timeout.connect(self._process_mouse_move)
+        self._pending_mouse_pos = None
+
         self._init_ui()
 
     def _init_ui(self) -> None:
@@ -56,7 +68,7 @@ class TimeDomainView(QWidget):
         self.chk_f_inst = QCheckBox("Inst Freq")
         self.chk_f_inst.setChecked(False)
         self.chk_f_inst.setStyleSheet(f"color: {COLOR_TRACE_FREQ}; font-weight: bold;")
-        self.chk_f_inst.toggled.connect(self._update_visibility)
+        self.chk_f_inst.toggled.connect(self._on_f_inst_toggled)
 
         self.cursor_label = QLabel("Cursor: -- s, -- V")
         self.cursor_label.setStyleSheet(f"color: {COLOR_TEXT_MUTED}; font-family: monospace; font-size: 8pt;")
@@ -70,19 +82,23 @@ class TimeDomainView(QWidget):
 
         layout.addLayout(ctrl_layout)
 
-        # Plot Widget
-        pg.setConfigOptions(antialias=True)
+        # Plot Widget — Fast rendering configuration
+        pg.setConfigOptions(antialias=False, enableExperimental=True)
         self.plot_widget = pg.PlotWidget()
         self.plot_widget.setBackground(COLOR_PLOT_BG)
         self.plot_widget.showGrid(x=True, y=True, alpha=0.5)
         self.plot_widget.setLabel("bottom", "Time", units="s")
         self.plot_widget.setLabel("left", "Amplitude", units="V / FS")
 
-        # Plot Curves
+        # Plot Curves with hardware-efficient peak downsampling & view clipping
         self.curve_i = self.plot_widget.plot(pen=pg.mkPen(COLOR_TRACE_I, width=1.5), name="I")
         self.curve_q = self.plot_widget.plot(pen=pg.mkPen(COLOR_TRACE_Q, width=1.5), name="Q")
         self.curve_mag = self.plot_widget.plot(pen=pg.mkPen(COLOR_TRACE_MAG, width=1.5), name="Mag")
         self.curve_f_inst = self.plot_widget.plot(pen=pg.mkPen(COLOR_TRACE_FREQ, width=1.5), name="Freq")
+
+        for curve in (self.curve_i, self.curve_q, self.curve_mag, self.curve_f_inst):
+            curve.setDownsampling(auto=True, method="peak")
+            curve.setClipToView(True)
 
         # Crosshair Lines
         self.v_line = pg.InfiniteLine(angle=90, movable=False, pen=pg.mkPen("#94a3b8", style=Qt.PenStyle.DashLine))
@@ -94,21 +110,27 @@ class TimeDomainView(QWidget):
 
         layout.addWidget(self.plot_widget)
 
-    def set_signal(self, signal_rec: SignalRecord, max_display_points: int = 50000) -> None:
+    def set_signal(self, signal_rec: SignalRecord, max_display_points: int = 10000) -> None:
         """Renders the signal in time domain with level-of-detail decimation."""
         self.signal_rec = signal_rec
         samples = signal_rec.samples
         fs = signal_rec.sample_rate
         n = len(samples)
 
-        # Level-of-detail decimation if sample count exceeds max_display_points
+        # Level-of-detail decimation (10,000 points provides multiple data points per screen pixel)
         if n > max_display_points:
             step = n // max_display_points
             dec_samples = samples[::step]
             t = np.arange(0, n, step) / fs
         else:
+            step = 1
             dec_samples = samples
             t = np.arange(n) / fs
+
+        self._dec_samples = dec_samples
+        self._dec_t = t
+        self._dec_fs = fs / step
+        self._f_inst_computed = False
 
         # I and Q
         if np.iscomplexobj(dec_samples):
@@ -124,15 +146,29 @@ class TimeDomainView(QWidget):
         mag = np.abs(dec_samples)
         self.curve_mag.setData(t, mag)
 
-        # Instantaneous Frequency (computed on subset)
-        try:
-            props = AnalyticSignalEngine.compute_properties(dec_samples, sample_rate=fs / (step if n > max_display_points else 1))
-            self.curve_f_inst.setData(t, props.instantaneous_frequency)
-        except Exception:
+        # Lazy instantaneous frequency (only computed if checkbox is active)
+        if self.chk_f_inst.isChecked():
+            self._compute_and_set_inst_freq()
+        else:
             self.curve_f_inst.setData([], [])
 
         self.plot_widget.autoRange()
         self._update_visibility()
+
+    def _on_f_inst_toggled(self, checked: bool) -> None:
+        if checked and not self._f_inst_computed:
+            self._compute_and_set_inst_freq()
+        self._update_visibility()
+
+    def _compute_and_set_inst_freq(self) -> None:
+        if self._dec_samples is None or self._dec_t is None:
+            return
+        try:
+            props = AnalyticSignalEngine.compute_properties(self._dec_samples, sample_rate=self._dec_fs)
+            self.curve_f_inst.setData(self._dec_t, props.instantaneous_frequency)
+            self._f_inst_computed = True
+        except Exception:
+            self.curve_f_inst.setData([], [])
 
     def _update_visibility(self) -> None:
         self.curve_i.setVisible(self.chk_i.isChecked())
@@ -141,6 +177,14 @@ class TimeDomainView(QWidget):
         self.curve_f_inst.setVisible(self.chk_f_inst.isChecked())
 
     def _on_mouse_moved(self, pos) -> None:
+        self._pending_mouse_pos = pos
+        if not self._mouse_timer.isActive():
+            self._mouse_timer.start()
+
+    def _process_mouse_move(self) -> None:
+        if self._pending_mouse_pos is None:
+            return
+        pos = self._pending_mouse_pos
         if self.plot_widget.sceneBoundingRect().contains(pos):
             mouse_point = self.plot_widget.plotItem.vb.mapSceneToView(pos)
             x_val = mouse_point.x()

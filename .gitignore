@@ -72,6 +72,11 @@ SignalInsight_Reports/
 # Database, datasets and raw storage
 data/*.db
 data/signals/*
+!data/signals/README.md
+!data/signals/signals_catalog.json
+signals/*
+!signals/README.md
+!signals/signals_catalog.json
 data/cache/*
 data/backups/*
 data/datasets/*
@@ -81,6 +86,8 @@ data/radioml/*
 *.hdf5
 *.tar.bz2
 *.tar.gz
+data/models/*
+!data/models/amc_xgboost_radioml.json
 !data/models/amc_xgboost_v1.json
 
 # =====================================================================

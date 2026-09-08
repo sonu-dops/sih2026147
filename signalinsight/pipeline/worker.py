@@ -29,7 +29,7 @@ class AnalysisWorker(QThread):
         self.signal_rec = signal_rec
         self.options = options or PipelineOptions()
         self.runner = runner or PipelineRunner()
-        self.signals = PipelineWorkerSignals()
+        self.signals = PipelineWorkerSignals(self)
 
     def run(self) -> None:
         try:

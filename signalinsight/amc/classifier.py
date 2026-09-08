@@ -39,15 +39,44 @@ class XGBoostModulationClassifier(BaseModulationClassifier):
         self.idx_to_class = {i: c for i, c in enumerate(self.classes)}
         self.model: Optional[xgb.XGBClassifier] = None
         self.rf_fallback: Optional[RandomForestClassifier] = None
+        self.model_name = "XGBoostAMC"
         self.model_version = "1.0.0"
         self.feature_version = "1.0.0"
 
         if model_path and Path(model_path).exists():
             self.load(Path(model_path))
         else:
-            default_model = Path(__file__).parent / "models" / "amc_xgboost_v1.json"
-            if default_model.exists():
-                self.load(default_model)
+            loaded = self._try_load_active_db_model()
+            if not loaded:
+                radioml_model = Path("data/models/amc_xgboost_radioml.json")
+                if radioml_model.exists():
+                    self.load(radioml_model)
+                    self.model_name = "RadioML2016-XGBoost"
+                    self.model_version = "2.0.0"
+                else:
+                    default_model = Path(__file__).parent / "models" / "amc_xgboost_v1.json"
+                    if default_model.exists():
+                        self.load(default_model)
+
+    def _try_load_active_db_model(self) -> bool:
+        """Attempts to load the currently ACTIVE model record from the database."""
+        try:
+            from backend.app.db.database import SessionLocal
+            from backend.app.db.models.amc import Model
+            with SessionLocal() as db:
+                active_m = db.query(Model).filter(Model.status == "ACTIVE").order_by(Model.id.desc()).first()
+                if active_m and active_m.file_path and Path(active_m.file_path).exists():
+                    self.load(Path(active_m.file_path))
+                    self.model_name = active_m.name
+                    self.model_version = active_m.version
+                    if active_m.classes:
+                        self.classes = list(active_m.classes)
+                        self.class_to_idx = {c: i for i, c in enumerate(self.classes)}
+                        self.idx_to_class = {i: c for i, c in enumerate(self.classes)}
+                    return True
+        except Exception:
+            pass
+        return False
 
     def get_supported_classes(self) -> List[str]:
         return list(self.classes)
@@ -130,7 +159,7 @@ class XGBoostModulationClassifier(BaseModulationClassifier):
         # Predict probabilities
         if self.model is not None:
             probs = self.model.predict_proba(x_in)[0]
-            model_name = "XGBoostAMC"
+            model_name = self.model_name
         else:
             probs = self.rf_fallback.predict_proba(x_in)[0]
             model_name = "RandomForestAMC"

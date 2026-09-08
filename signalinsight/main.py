@@ -45,7 +45,16 @@ def run_cli_analysis(filepath: Path, output_pdf: Path) -> int:
     return 0
 
 
+def excepthook(exc_type, exc_value, exc_tb):
+    import traceback
+    tb_str = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+    logger.critical("System", f"Unhandled exception: {exc_value}", details=tb_str)
+    sys.__excepthook__(exc_type, exc_value, exc_tb)
+
+
 def main() -> int:
+    sys.excepthook = excepthook
+
     parser = argparse.ArgumentParser(description=f"{APP_NAME} — {APP_SUBTITLE}")
     parser.add_argument("--version", action="version", version=f"{APP_NAME} v{APP_VERSION}")
     parser.add_argument("--file", "-f", type=str, help="Input signal file (.wav, .iq, .sigmf-meta)")
@@ -65,6 +74,11 @@ def main() -> int:
 
     if args.file:
         window._load_file_path(Path(args.file))
+    else:
+        # Pre-load demo sample if available so user has immediate data
+        default_sample = Path("samples/demo_qpsk.wav")
+        if default_sample.exists():
+            window._load_file_path(default_sample)
 
     window.show()
     return app.exec()

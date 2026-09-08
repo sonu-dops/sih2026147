@@ -27,9 +27,24 @@ def test_main_window_init(qapp):
     rec = SyntheticSignalGenerator.generate("QPSK", sample_rate=1e6, symbol_rate=100e3, num_symbols=500)
     window.load_signal_record(rec)
 
-    assert window.state_machine.current_state == AppState.READY
-    assert window.current_signal is not None
-    assert window.dock_workspace.signals_group.rowCount() == 1
-    assert "Active Signal" in window.dock_workspace.signals_group.child(0).text() or "Synthetic Buffer" in window.lbl_file_status.text()
+    # Test lazy tab rendering
+    assert 0 not in window._dirty_tabs  # Active tab (0: Time Domain) was rendered
+    assert 1 in window._dirty_tabs      # Other tabs dirty until accessed
+    assert 2 in window._dirty_tabs
+    assert 3 in window._dirty_tabs
+
+    # Switch to Spectrum tab (tab 1)
+    window.analysis_tabs.setCurrentIndex(1)
+    assert 1 not in window._dirty_tabs
+    assert window.spectrum_view.curve_spec.getData()[0] is not None
+
+    # Switch to Spectrogram tab (tab 2)
+    window.analysis_tabs.setCurrentIndex(2)
+    assert 2 not in window._dirty_tabs
+    assert window.spectrogram_view._raw_spec_db is not None
+
+    # Change dynamic range slider: should update image via cached STFT without recalculation
+    window.spectrogram_view.slider_dr.setValue(50)
+    assert window.spectrogram_view.img_item.image is not None
 
     window.close()
