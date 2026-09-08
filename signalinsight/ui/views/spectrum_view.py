@@ -36,20 +36,22 @@ class SpectrumView(QWidget):
 
         # Control strip
         ctrl_layout = QHBoxLayout()
+        ctrl_layout.setContentsMargins(2, 2, 2, 2)
+        ctrl_layout.setSpacing(4)
 
         lbl_mode = QLabel("Mode:")
         lbl_mode.setStyleSheet(f"color: {COLOR_TEXT_MUTED}; font-size: 8.5pt;")
         self.combo_mode = QComboBox()
-        self.combo_mode.addItems(["Welch PSD (dBFS/Hz)", "FFT Magnitude (dBFS)", "Linear Magnitude"])
+        self.combo_mode.addItems(["Welch PSD", "FFT Magnitude", "Linear Mag"])
         self.combo_mode.currentIndexChanged.connect(self._recompute_spectrum)
 
-        lbl_win = QLabel("Window:")
+        lbl_win = QLabel("Win:")
         lbl_win.setStyleSheet(f"color: {COLOR_TEXT_MUTED}; font-size: 8.5pt;")
         self.combo_win = QComboBox()
         self.combo_win.addItems(SUPPORTED_WINDOWS)
         self.combo_win.currentIndexChanged.connect(self._recompute_spectrum)
 
-        lbl_fft_size = QLabel("FFT Size:")
+        lbl_fft_size = QLabel("FFT:")
         lbl_fft_size.setStyleSheet(f"color: {COLOR_TEXT_MUTED}; font-size: 8.5pt;")
         self.combo_fft_size = QComboBox()
         self.combo_fft_size.addItems(["512", "1024", "2048", "4096", "8192", "16384"])

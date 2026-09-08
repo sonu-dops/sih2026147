@@ -48,10 +48,10 @@ class PipelineOptions:
         run_amc: bool = True,
         run_sync: bool = True,
         run_demod: bool = True,
-        run_decode: bool = False,
+        run_decode: bool = True,
         target_modulation: Optional[str] = "Auto",
-        confidence_threshold: float = 0.65,
-        fec_type: str = "None",
+        confidence_threshold: float = 0.50,
+        fec_type: str = "Auto",
     ):
         self.remove_dc = remove_dc
         self.normalize_rms = normalize_rms
@@ -177,6 +177,21 @@ class PipelineRunner:
         effective_mod = detected_mod
         if opts.target_modulation and opts.target_modulation.upper() != "AUTO":
             effective_mod = opts.target_modulation.upper()
+        elif effective_mod == MOD_UNCERTAIN:
+            # Fallback candidate for sync & demodulation: inspect AMC class probabilities
+            if mod_result and mod_result.class_probabilities:
+                candidate = max(mod_result.class_probabilities, key=mod_result.class_probabilities.get)
+                if candidate in (MOD_BPSK, MOD_QPSK, MOD_8PSK, MOD_16QAM, "16QAM", MOD_FSK):
+                    effective_mod = candidate
+                    warnings.append(
+                        f"AMC confidence below threshold ({mod_result.confidence*100:.1f}%); using top candidate '{candidate}' for synchronization and demodulation."
+                    )
+                else:
+                    effective_mod = MOD_QPSK
+                    warnings.append("AMC uncertain; applying universal 4-quadrant slicer (QPSK).")
+            else:
+                effective_mod = MOD_QPSK
+                warnings.append("AMC uncertain; applying universal 4-quadrant slicer (QPSK).")
 
         if self._is_cancelled:
             raise InterruptedError("Analysis cancelled by user.")
@@ -189,7 +204,7 @@ class PipelineRunner:
         sync_result: Optional[SynchronizationResult] = None
         demod_symbols = current_sig.samples
 
-        if opts.run_sync and effective_mod != MOD_UNCERTAIN and effective_mod != MOD_FSK:
+        if opts.run_sync and effective_mod != MOD_FSK:
             try:
                 # 1. Carrier sync via Costas Loop
                 synced_sig, sync_result = CarrierSynchronizer.synchronize(
@@ -221,7 +236,7 @@ class PipelineRunner:
         t0 = time.perf_counter()
         demod_result: Optional[DemodulationResult] = None
 
-        if opts.run_demod and effective_mod != MOD_UNCERTAIN:
+        if opts.run_demod:
             try:
                 if effective_mod == MOD_BPSK:
                     demod_result = BPSKDemodulator().demodulate(demod_symbols)
@@ -236,8 +251,16 @@ class PipelineRunner:
                         sample_rate=current_sig.sample_rate,
                         symbol_rate=sym_res.symbol_rate_baud.value or 100e3,
                     ).demodulate(current_sig.samples)
+                else:
+                    # Universal 4-quadrant demodulation fallback
+                    demod_result = QPSKDemodulator().demodulate(demod_symbols)
             except Exception as e:
                 warnings.append(f"Demodulation exception: {e}")
+                # Fallback to universal slicer on exception
+                try:
+                    demod_result = QPSKDemodulator().demodulate(demod_symbols)
+                except Exception:
+                    pass
 
         timing_records["demodulation"] = (time.perf_counter() - t0) * 1000.0
 

@@ -6,10 +6,12 @@ from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDockWidget,
+    QFrame,
     QGroupBox,
     QHBoxLayout,
     QLabel,
     QPushButton,
+    QScrollArea,
     QSpinBox,
     QVBoxLayout,
     QWidget,
@@ -35,8 +37,8 @@ class AnalysisControlDock(QDockWidget):
     def _init_ui(self) -> None:
         content = QWidget()
         layout = QVBoxLayout(content)
-        layout.setContentsMargins(8, 8, 8, 8)
-        layout.setSpacing(10)
+        layout.setContentsMargins(6, 6, 6, 6)
+        layout.setSpacing(8)
 
         # Mode Selection
         grp_mode = QGroupBox("PIPELINE MODE")
@@ -63,6 +65,17 @@ class AnalysisControlDock(QDockWidget):
         self.combo_target_mod.addItems(SUPPORTED_MODULATIONS)
         mode_layout.addWidget(lbl_target)
         mode_layout.addWidget(self.combo_target_mod)
+
+        # Min AMC Confidence Threshold
+        lbl_thresh = QLabel("Min Confidence Threshold:")
+        lbl_thresh.setStyleSheet("color: #64748b; font-size: 8.5pt;")
+        self.spin_thresh = QSpinBox()
+        self.spin_thresh.setRange(20, 95)
+        self.spin_thresh.setValue(50)
+        self.spin_thresh.setSuffix("%")
+        mode_layout.addWidget(lbl_thresh)
+        mode_layout.addWidget(self.spin_thresh)
+
         layout.addWidget(grp_mode)
 
         # Stage Checkboxes
@@ -82,8 +95,8 @@ class AnalysisControlDock(QDockWidget):
         self.chk_sync.setChecked(True)
         self.chk_demod = QCheckBox("Run Demodulation")
         self.chk_demod.setChecked(True)
-        self.chk_decode = QCheckBox("Run Decoding (FEC/CRC)")
-        self.chk_decode.setChecked(False)
+        self.chk_decode = QCheckBox("Run Decoding (FEC/Framing)")
+        self.chk_decode.setChecked(True)
 
         stages_layout.addWidget(self.chk_dc)
         stages_layout.addWidget(self.chk_norm)
@@ -137,7 +150,14 @@ class AnalysisControlDock(QDockWidget):
         layout.addWidget(grp_adv)
 
         layout.addStretch()
-        self.setWidget(content)
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll.setWidget(content)
+        self.setWidget(scroll)
 
     def _on_mode_changed(self, idx: int) -> None:
         text = self.combo_mode.currentText()
@@ -148,19 +168,21 @@ class AnalysisControlDock(QDockWidget):
             self.chk_amc.setChecked(True)
             self.chk_sync.setChecked(True)
             self.chk_demod.setChecked(True)
-            self.chk_decode.setChecked(False)
+            self.chk_decode.setChecked(True)
         elif "Parameter Estimation Only" in text:
             self.chk_params.setChecked(True)
             self.chk_features.setChecked(False)
             self.chk_amc.setChecked(False)
             self.chk_sync.setChecked(False)
             self.chk_demod.setChecked(False)
+            self.chk_decode.setChecked(False)
         elif "Modulation Classification Only" in text:
             self.chk_params.setChecked(False)
             self.chk_features.setChecked(True)
             self.chk_amc.setChecked(True)
             self.chk_sync.setChecked(False)
             self.chk_demod.setChecked(False)
+            self.chk_decode.setChecked(False)
 
     def _on_run_clicked(self) -> None:
         target = self.combo_target_mod.currentText()
@@ -174,5 +196,7 @@ class AnalysisControlDock(QDockWidget):
             run_demod=self.chk_demod.isChecked(),
             run_decode=self.chk_decode.isChecked(),
             target_modulation=target,
+            confidence_threshold=self.spin_thresh.value() / 100.0,
+            fec_type="Auto" if self.chk_decode.isChecked() else "None",
         )
         self.run_requested.emit(opts)

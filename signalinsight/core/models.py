@@ -46,7 +46,8 @@ class ParameterValue(BaseModel):
             return f"N/A [{self.source.value}]"
         if isinstance(self.value, float):
             # Format frequency or large numbers with engineering scale
-            val_str = f"{self.value:,.4f}".rstrip('0').rstrip('.')
+            val = 0.0 if abs(self.value) < 1e-9 else self.value
+            val_str = f"{val:,.4f}".rstrip('0').rstrip('.')
             return f"{val_str} {self.unit} [{self.source.value}]"
         return f"{self.value} {self.unit} [{self.source.value}]"
 

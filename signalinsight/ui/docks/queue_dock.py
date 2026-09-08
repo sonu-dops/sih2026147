@@ -44,6 +44,8 @@ class QueueDock(QDockWidget):
         self.table.setHorizontalHeaderLabels(["File", "Status", "Progress", "Stage", "Elapsed", "Result"])
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         self.table.verticalHeader().setVisible(False)
+        self.table.verticalHeader().setDefaultSectionSize(24)
+        self.table.setMinimumHeight(120)
         layout.addWidget(self.table)
 
         self.setWidget(content)

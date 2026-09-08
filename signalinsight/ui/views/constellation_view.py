@@ -35,17 +35,19 @@ class ConstellationView(QWidget):
 
         # Control Strip
         ctrl_layout = QHBoxLayout()
+        ctrl_layout.setContentsMargins(2, 2, 2, 2)
+        ctrl_layout.setSpacing(6)
 
-        self.chk_ideal = QCheckBox("Show Ideal Points")
+        self.chk_ideal = QCheckBox("Ideal Points")
         self.chk_ideal.setChecked(True)
         self.chk_ideal.setStyleSheet(f"color: {COLOR_CONSTELLATION_IDEAL}; font-weight: bold;")
         self.chk_ideal.toggled.connect(self._update_visibility)
 
-        self.chk_grid = QCheckBox("Decision Crosshairs")
+        self.chk_grid = QCheckBox("Crosshairs")
         self.chk_grid.setChecked(True)
         self.chk_grid.toggled.connect(self._update_visibility)
 
-        lbl_pts = QLabel("Symbol Limit:")
+        lbl_pts = QLabel("Limit:")
         lbl_pts.setStyleSheet(f"color: {COLOR_TEXT_MUTED}; font-size: 8.5pt;")
         self.combo_pts = QComboBox()
         self.combo_pts.addItems(["500", "1000", "2000", "5000", "All"])

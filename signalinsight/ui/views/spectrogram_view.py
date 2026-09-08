@@ -138,6 +138,12 @@ class SpectrogramView(QWidget):
 
         # Transpose so x=time, y=freq
         self.img_item.setImage(norm_img.T, levels=[0.0, 1.0])
+        if self._times is not None and self._freqs is not None and len(self._times) > 0 and len(self._freqs) > 0:
+            t = self._times
+            f = self._freqs
+            t_min, t_max = float(t[0]), float(t[-1]) if len(t) > 1 else 1.0
+            f_min, f_max = float(f[0]), float(f[-1]) if len(f) > 1 else 1.0
+            self.img_item.setRect(pg.QtCore.QRectF(t_min, f_min, t_max - t_min, f_max - f_min))
 
     def _update_colormap(self) -> None:
         cmap_name = self.combo_cmap.currentText().lower()

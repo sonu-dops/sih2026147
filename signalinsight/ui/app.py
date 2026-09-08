@@ -71,6 +71,8 @@ from signalinsight.ui.state_machine import UIStateCoordinator
 from signalinsight.ui.theme import get_workstation_stylesheet
 from signalinsight.ui.views.comparison_view import ComparisonView
 from signalinsight.ui.views.constellation_view import ConstellationView
+from signalinsight.ui.views.demod_view import DemodulationBitsView
+from signalinsight.ui.views.overview_view import OverviewDashboardView
 from signalinsight.ui.views.spectrogram_view import SpectrogramView
 from signalinsight.ui.views.spectrum_view import SpectrumView
 from signalinsight.ui.views.time_view import TimeDomainView
@@ -82,7 +84,8 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle(f"{APP_NAME} — {APP_SUBTITLE}")
-        self.resize(1500, 950)
+        self.setMinimumSize(960, 580)
+        self.resize(1400, 850)
         self.setAcceptDrops(True)
 
         # State machine
@@ -147,32 +150,48 @@ class MainWindow(QMainWindow):
 
         # 2. Tabbed Analysis Workspace
         self.analysis_tabs = QTabWidget()
+        self.overview_view = OverviewDashboardView()
         self.time_view = TimeDomainView()
         self.spectrum_view = SpectrumView()
         self.spectrogram_view = SpectrogramView()
         self.constellation_view = ConstellationView()
+        self.demod_view = DemodulationBitsView()
         self.comparison_view = ComparisonView()
 
+        self.analysis_tabs.addTab(self.overview_view, "OVERVIEW")
         self.analysis_tabs.addTab(self.time_view, "TIME DOMAIN")
         self.analysis_tabs.addTab(self.spectrum_view, "SPECTRUM / PSD")
         self.analysis_tabs.addTab(self.spectrogram_view, "SPECTROGRAM")
         self.analysis_tabs.addTab(self.constellation_view, "CONSTELLATION")
+        self.analysis_tabs.addTab(self.demod_view, "DEMOD & BITS")
         self.analysis_tabs.addTab(self.comparison_view, "DUAL COMPARISON")
         self.analysis_tabs.currentChanged.connect(self._on_tab_changed)
+
+        # Connect Overview quick actions
+        self.overview_view.run_requested.connect(self._on_overview_run_clicked)
+        self.overview_view.export_requested.connect(self._export_pdf)
 
         self.central_stack.addWidget(self.analysis_tabs)
         self.setCentralWidget(self.central_stack)
 
     def _init_docks(self) -> None:
-        # Left Docks
+        # Give left and right dock panels priority in all four window corners
+        self.setCorner(Qt.Corner.TopLeftCorner, Qt.DockWidgetArea.LeftDockWidgetArea)
+        self.setCorner(Qt.Corner.BottomLeftCorner, Qt.DockWidgetArea.LeftDockWidgetArea)
+        self.setCorner(Qt.Corner.TopRightCorner, Qt.DockWidgetArea.RightDockWidgetArea)
+        self.setCorner(Qt.Corner.BottomRightCorner, Qt.DockWidgetArea.RightDockWidgetArea)
+
+        # Left Docks: Tabify Workspace Explorer and Properties for full-height inspection
         self.dock_workspace = WorkspaceExplorerDock(self)
         self.dock_properties = PropertiesDock(self)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock_workspace)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock_properties)
+        self.tabifyDockWidget(self.dock_workspace, self.dock_properties)
+        self.dock_workspace.raise_()
 
         self.dock_workspace.node_selected.connect(self._on_workspace_node_selected)
 
-        # Right Docks
+        # Right Docks: Tabify Analysis Control, Results Summary, and Markers
         self.dock_control = AnalysisControlDock(self)
         self.dock_results = ResultsSummaryDock(self)
         self.dock_markers = MarkersDock(self)
@@ -180,8 +199,9 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dock_results)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dock_markers)
 
+        self.tabifyDockWidget(self.dock_control, self.dock_results)
         self.tabifyDockWidget(self.dock_results, self.dock_markers)
-        self.dock_results.raise_()
+        self.dock_control.raise_()
 
         self.dock_control.run_requested.connect(self._start_analysis)
         self.dock_control.pause_requested.connect(self._pause_analysis)
@@ -200,6 +220,11 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.dock_queue)
         self.tabifyDockWidget(self.dock_console, self.dock_queue)
         self.dock_console.raise_()
+
+        # Set clean initial proportions
+        self.resizeDocks([self.dock_workspace], [280], Qt.Orientation.Horizontal)
+        self.resizeDocks([self.dock_control], [330], Qt.Orientation.Horizontal)
+        self.resizeDocks([self.dock_console], [150], Qt.Orientation.Vertical)
 
     def _init_menus(self) -> None:
         menubar = self.menuBar()
@@ -415,12 +440,18 @@ class MainWindow(QMainWindow):
         if dlg.exec() == SignalGeneratorDialog.DialogCode.Accepted and dlg.generated_record:
             self.load_signal_record(dlg.generated_record)
 
+    def _on_overview_run_clicked(self) -> None:
+        if self.current_signal is None:
+            QMessageBox.warning(self, "No Signal", "Please load or generate an RF signal before running analysis.")
+            return
+        self.dock_control.btn_run.click()
+
     def load_signal_record(self, signal_rec: SignalRecord) -> None:
         self.current_signal = signal_rec
         self.current_result = None
 
         # Mark all tabs dirty and only render the currently visible tab
-        self._dirty_tabs = {0, 1, 2, 3, 4}
+        self._dirty_tabs = {0, 1, 2, 3, 4, 5, 6}
         self.central_stack.setCurrentWidget(self.analysis_tabs)
         current_idx = self.analysis_tabs.currentIndex()
         self._render_tab(current_idx)
@@ -429,6 +460,8 @@ class MainWindow(QMainWindow):
         # Update Docks
         self.dock_workspace.set_active_signal(signal_rec)
         self.dock_properties.set_signal(signal_rec)
+        self.dock_control.raise_()
+        self.dock_workspace.raise_()
 
         # Update Status Bar
         fn_str = signal_rec.source_file.name if signal_rec.source_file else "Synthetic Buffer"
@@ -454,17 +487,24 @@ class MainWindow(QMainWindow):
         if self.current_signal is None:
             return
         if index == 0:
-            self.time_view.set_signal(self.current_signal)
+            self.overview_view.set_signal(self.current_signal)
+            if self.current_result:
+                self.overview_view.set_result(self.current_result)
         elif index == 1:
-            self.spectrum_view.set_signal(self.current_signal)
+            self.time_view.set_signal(self.current_signal)
         elif index == 2:
-            self.spectrogram_view.set_signal(self.current_signal)
+            self.spectrum_view.set_signal(self.current_signal)
         elif index == 3:
+            self.spectrogram_view.set_signal(self.current_signal)
+        elif index == 4:
             if self.current_result and self.current_result.demodulation_result:
                 self.constellation_view.set_demod_result(self.current_result.demodulation_result)
             else:
                 self.constellation_view.set_raw_symbols(self.current_signal.samples)
-        elif index == 4:
+        elif index == 5:
+            if self.current_result:
+                self.demod_view.set_result(self.current_result)
+        elif index == 6:
             # Dual comparison tab
             pass
 
@@ -534,21 +574,38 @@ class MainWindow(QMainWindow):
         self.state_machine.transition_to(AppState.COMPLETED)
 
         try:
-            # Update Results Summary Dock
+            # Update Overview Dashboard View
+            self.overview_view.set_result(result)
+        except Exception as e:
+            logger.error("UI", f"Error updating overview view: {e}")
+
+        try:
+            # Update Results Summary Dock and bring to front
             self.dock_results.set_result(result)
+            self.dock_results.raise_()
         except Exception as e:
             logger.error("UI", f"Error updating results dock: {e}")
 
         try:
+            # Update Demod View
+            self.demod_view.set_result(result)
+        except Exception as e:
+            logger.error("UI", f"Error updating demod view: {e}")
+
+        try:
             # Update Constellation View if demodulation result exists
             if result.demodulation_result:
-                if self.analysis_tabs.currentIndex() == 3:
+                if self.analysis_tabs.currentIndex() == 4:
                     self.constellation_view.set_demod_result(result.demodulation_result)
-                    self._dirty_tabs.discard(3)
+                    self._dirty_tabs.discard(4)
                 else:
-                    self._dirty_tabs.add(3)
+                    self._dirty_tabs.add(4)
         except Exception as e:
             logger.error("UI", f"Error updating constellation view: {e}")
+
+        # Mark other tabs dirty so they update on demand
+        self._dirty_tabs.update({1, 2, 3, 4, 5, 6})
+        self._dirty_tabs.discard(self.analysis_tabs.currentIndex())
 
         try:
             # Persist results to database
@@ -576,7 +633,9 @@ class MainWindow(QMainWindow):
 
     def _on_workspace_node_selected(self, node_tag: str) -> None:
         tag = node_tag.lower()
-        if "time" in tag:
+        if "overview" in tag or "dashboard" in tag or "analyzer" in tag:
+            self.analysis_tabs.setCurrentWidget(self.overview_view)
+        elif "time" in tag:
             self.analysis_tabs.setCurrentWidget(self.time_view)
         elif "spectrum" in tag or "freq" in tag:
             self.analysis_tabs.setCurrentWidget(self.spectrum_view)
@@ -584,8 +643,14 @@ class MainWindow(QMainWindow):
             self.analysis_tabs.setCurrentWidget(self.spectrogram_view)
         elif "constellation" in tag:
             self.analysis_tabs.setCurrentWidget(self.constellation_view)
+        elif "demod" in tag or "bit" in tag or "hex" in tag:
+            self.analysis_tabs.setCurrentWidget(self.demod_view)
         elif "active_signal" in tag:
-            self.analysis_tabs.setCurrentWidget(self.time_view)
+            self.analysis_tabs.setCurrentWidget(self.overview_view)
+        elif "property" in tag or "metadata" in tag:
+            self.dock_properties.raise_()
+        elif "result" in tag or "summary" in tag or "parameter" in tag or "modulation" in tag:
+            self.dock_results.raise_()
 
     def _export_json(self) -> None:
         if not self.current_result:

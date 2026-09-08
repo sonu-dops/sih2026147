@@ -4,9 +4,11 @@ from typing import List, Optional
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
     QDockWidget,
+    QFrame,
     QHBoxLayout,
     QHeaderView,
     QPushButton,
+    QScrollArea,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
@@ -54,9 +56,17 @@ class MarkersDock(QDockWidget):
         self.table.setHorizontalHeaderLabels(["ID", "Type", "Position", "Value", "Plot"])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table.verticalHeader().setVisible(False)
+        self.table.verticalHeader().setDefaultSectionSize(24)
+        self.table.setMinimumHeight(150)
         layout.addWidget(self.table)
 
-        self.setWidget(content)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll.setWidget(content)
+        self.setWidget(scroll)
 
     def add_marker(self, marker: Marker) -> None:
         self.markers.append(marker)

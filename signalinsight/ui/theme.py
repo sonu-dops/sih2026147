@@ -340,4 +340,35 @@ def get_workstation_stylesheet(mode: str = "light") -> str:
     QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
         height: 0px;
     }}
+
+    QScrollBar:horizontal {{
+        background: {scroll_bg};
+        height: 10px;
+        margin: 0px;
+    }}
+    QScrollBar::handle:horizontal {{
+        background: {scroll_handle};
+        min-width: 20px;
+        border-radius: 4px;
+    }}
+    QScrollBar::handle:horizontal:hover {{
+        background: #94a3b8;
+    }}
+    QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{
+        width: 0px;
+    }}
+
+    /* Scroll Area and Splitters */
+    QScrollArea {{
+        border: none;
+        background-color: transparent;
+    }}
+    QMainWindow::separator {{
+        background-color: #e2e8f0;
+        width: 4px;
+        height: 4px;
+    }}
+    QMainWindow::separator:hover {{
+        background-color: {accent};
+    }}
     """

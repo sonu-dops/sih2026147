@@ -122,3 +122,36 @@ def test_crc16():
     assert crc > 0
     crc2 = CRCValidator.compute_crc16_ccitt(data)
     assert crc == crc2
+
+
+def test_blind_fec_convolutional():
+    from signalinsight.decoding.fec import BlindFECEstimator
+    # Generate Rate 1/2 convolutional stream (K=3, G1=[1,1,1], G2=[1,0,1])
+    import numpy as np
+    np.random.seed(42)
+    info_bits = np.random.randint(0, 2, 60)
+    interleaved = []
+    reg = [0, 0]
+    for b in info_bits:
+        y1 = b ^ reg[0] ^ reg[1]
+        y2 = b ^ reg[1]
+        interleaved.extend([int(y1), int(y2)])
+        reg = [b, reg[0]]
+
+    est = BlindFECEstimator.estimate(interleaved)
+    assert "convolutional" in est.detected_scheme.lower()
+    assert est.code_rate == "1/2"
+    assert est.confidence >= 0.70
+
+
+def test_blind_fec_auto_decoder():
+    from signalinsight.decoding.fec import ConfiguredFECDecoder
+    # Create bitstream with alternating preamble
+    bits = [1, 0] * 32 + [1, 1, 0, 0, 1, 0, 1, 1] * 10
+    decoder = ConfiguredFECDecoder(fec_type="Auto")
+    res = decoder.decode(bits)
+
+    assert res.available is True
+    assert res.bit_count == len(bits)
+    assert res.fec_type is not None
+    assert "FEC:" in res.message
